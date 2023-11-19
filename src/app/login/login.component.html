@@ -1,0 +1,28 @@
+<div class="cs-login">
+    <div class="cs-login--wrapper">
+        <cs-login-panel [@loginAnimation] *ngIf="!register"></cs-login-panel>
+        <div [@templateAnimation]="{value:stateName, params:{
+            right: panelTemplateParams.right,
+            left: panelTemplateParams.left,
+            top: panelTemplateParams.top,
+            midLeft: panelTemplateParams.midLeft,
+            position: panelTemplateParams.position,
+        }}" class="cs-login--placeholder" 
+        [ngClass]="{'cs-login--placeholder__login': !register, 
+            'cs-login--placeholder__register': register}">
+			<div class="cs-login--placeholder__logo"></div>
+			<div class="cs-login--placeholder__content">
+                <div class="cs-login--placeholder__title">{{ templateTitle }}</div>
+                <div>
+                    <button mat-button 
+                      appearance="outline" 
+                      color="accent-200" 
+                      (click)="register = !register">
+                        {{ templateButtonContent }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        <cs-register-panel [@registerAnimation] *ngIf="register"></cs-register-panel>
+    </div>
+</div>

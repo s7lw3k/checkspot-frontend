@@ -1,0 +1,106 @@
+.cs-login {
+    --border-radius: 10px;
+    --panel-width: 40vw;
+    --panel-min-height: 750px;
+    width: 100svw;
+    height: 100svh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: hsl(210, 63%, 97%);
+    &--wrapper {
+        padding: 0 5%;
+        display: flex;
+        width: auto;
+        height: 100%;
+        gap: 120px;
+        align-items: center;
+        justify-content: space-between;
+    }
+    &--placeholder{
+        width: var(--panel-width);
+        height: var(--panel-min-height);
+        position: absolute;
+        z-index: 1000;
+        min-width: 400px;
+        max-width: 800px;
+        height: 80vh;
+        min-height: 500px;
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        align-items: center;
+        border-radius: var(--border-radius);
+        background-color: white;
+        button {
+            font-size: 32px;
+            height: 100px;
+            width: 250px;
+            background-color: rgba(255, 255, 255, 0.05);
+            outline: 1px white solid;
+        }
+        &__title {
+            font-size: 24px;
+            // color: #2F87DA;
+        }
+        &__login {
+            .cs-login--placeholder__logo{
+                background-image: url('../../assets/graySignature.svg');
+            }
+        }
+        &__register {
+            .cs-login--placeholder__logo{
+                background-image: url('../../assets/grayLogo.svg');
+            }
+        }
+        &__logo {
+            background-image: url('../../assets/graySignature.svg');
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: center;
+            width: 20em;
+            height: 20em;
+            margin: auto;
+            transition: 400ms;
+        }
+        &__content {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+        }
+    }
+}
+
+.cs-register-panel {
+    width: var(--panel-width);
+    min-width: 400px;
+    max-width: 800px;
+    height: 80vh;
+    min-height: 500px;
+    background-color: white;
+    border-radius: var(--border-radius);
+}
+
+.cs-login-panel {
+    width: var(--panel-width);
+    min-width: 400px;
+    max-width: 800px;
+    height: 80vh;
+    min-height: 500px;
+    background-color: white;
+    border-radius: var(--border-radius);
+}
+
+@media only screen and (max-width: 1000px) {
+    .cs-login--wrapper {
+        padding: 4em 5%;
+        flex-direction: column;
+    }
+    .cs-login {
+        --panel-width: 80vw;
+    }
+    .cs-login--placeholder {
+        position: relative;
+    }
+}

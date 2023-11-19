@@ -1,0 +1,106 @@
+
+@use '@angular/material' as mat;
+@include mat.core();
+
+$cs-primary-colors: (
+    50: #EEF5FC,
+    100: #CBE1F6,
+    200: #A8CDF0,
+    300: #86B9EA,
+    400: #529BE0,
+    500: #2F87DA,
+    600: #1F68AD,
+    700: #18548B,
+    800: #123F68,
+    900: #0C2A45,
+    contrast: (
+        50: rgba(0, 0, 0, .87),
+        100: rgba(0, 0, 0, .87),
+        200: rgba(0, 0, 0, .87),
+        300: rgba(0, 0, 0, .87),
+        400: rgba(0, 0, 0, .87),
+        500: rgba(0, 0, 0, .87),
+        600: #E6EFE9,
+        700: #E6EFE9,
+        800: #E6EFE9,
+        900: #E6EFE9,
+    )
+);
+$cs-accent-colors: (
+    50: hsl(345, 66%, 95%),
+    100: hsl(345, 66%, 90%),
+    200: hsl(345, 66%, 80%),
+    300: hsl(345, 66%, 70%),
+    400: hsl(345, 66%, 60%),
+    500: hsl(345, 66%, 50%),
+    600: hsl(345, 66%, 40%),
+    700: hsl(345, 66%, 30%),
+    800: hsl(345, 66%, 20%),
+    900: hsl(345, 66%, 10%),
+    contrast: (
+        50: rgba(0, 0, 0, .87),
+        100: rgba(0, 0, 0, .87),
+        200: rgba(0, 0, 0, .87),
+        300: rgba(0, 0, 0, .87),
+        400: #E6EFE9,
+        500: #E6EFE9,
+        600: #E6EFE9,
+        700: #E6EFE9,
+        800: #E6EFE9,
+        900: #E6EFE9,
+    )
+);
+// #AB2346
+
+$checkspot-frontend-primary: mat.define-palette($cs-primary-colors);
+// $checkspot-frontend-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+
+$checkspot-frontend-accent: mat.define-palette($cs-accent-colors);
+
+// The warn palette is optional (defaults to red).
+$checkspot-frontend-warn: mat.define-palette(mat.$red-palette);
+
+// Create the theme object. A theme consists of configurations for individual
+// theming systems such as "color" or "typography".
+$checkspot-frontend-theme: mat.define-light-theme((
+  color: (
+    primary: $checkspot-frontend-primary,
+    accent: $checkspot-frontend-accent,
+    warn: $checkspot-frontend-warn,
+  )
+));
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+@include mat.all-component-themes($checkspot-frontend-theme);
+
+@include mat.all-component-densities(-3);
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+/* width */
+::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    border-radius: 3px;
+  }
+   
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #cbcbcb; 
+    border-radius: 8px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a4a4a4; 
+  }
+
+@import 'components/cs-map.scss';
+@import 'components/cs-register-panel.scss';
+@import 'components/cs-login-panel.scss';
