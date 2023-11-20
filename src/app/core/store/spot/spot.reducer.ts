@@ -1,26 +1,22 @@
 import { Action } from '@ngrx/store';
-import { SpotState, initializeState } from './spot.state';
-import * as SpotActions from './spot.action';
-import { Spot } from '../../models/spot.model';
-import ActionWithPayload from '../action';
+import { SpotState, adapter, initialState } from './spot.state';
+import {
+  AddSpot,
+  AddSpots,
+  SpotActionTypes,
+  SpotActionsUnion,
+} from './spot.action';
 
-const initialState = initializeState();
-
-export function SpotReducer(state: SpotState = initialState, action: Action) {
+export function SpotReducer(state = initialState, action: Action): SpotState {
   switch (action.type) {
-    case SpotActions.GET_SPOT:
+    case SpotActionTypes.GET_SPOT:
       return { ...state, Loaded: false, Loading: true };
 
-    case SpotActions.CREATE_SPOT:
-      return {
-        ...state,
-        SpotList: state.SpotList.concat(
-          (action as ActionWithPayload<Spot[]>).payload
-        ),
-        Loaded: false,
-        Loading: true,
-      };
+    case SpotActionTypes.ADD_SPOT:
+      return adapter.addOne((action as AddSpot).payload.spot, state);
 
+    case SpotActionTypes.ADD_SPOTS:
+      return adapter.addMany((action as AddSpots).payload.spots, state);
     default:
       return state;
   }

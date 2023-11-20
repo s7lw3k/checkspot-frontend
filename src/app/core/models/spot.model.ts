@@ -4,11 +4,11 @@ import { Opinion } from './opinion.model';
 import { LatLng } from 'leaflet';
 
 export interface Spot {
-	id?: number;
-	name?: string;
-	des?: string;
-	address?: Address;
-	issuedBy?: User;
-	opinions?: Opinion[];
-	coordinates?: LatLng;
+  id: number;
+  name?: string;
+  des?: string;
+  address?: Address;
+  issuedBy?: User;
+  opinions?: Opinion[];
+  coordinates: LatLng;
 }

@@ -2,22 +2,25 @@ import { Action } from '@ngrx/store';
 import ActionWithPayload from '../action';
 import { Spot } from '../../models/spot.model';
 
-export const GET_SPOT = '[Spot] GET_SPOT';
-export const CREATE_SPOT = '[Spot] CREATE_SPOT';
-
+export enum SpotActionTypes {
+  GET_SPOT = '[Spot] GET_SPOT',
+  ADD_SPOT = '[Spot] ADD_SPOT',
+  ADD_SPOTS = '[Spot] ADD_SPOTS',
+}
 export class GetSpot implements Action {
-  readonly type = GET_SPOT;
+  readonly type = SpotActionTypes.GET_SPOT;
 
   constructor() {}
 }
+export class AddSpot implements Action {
+  readonly type = SpotActionTypes.ADD_SPOT;
 
-export class CreateSpot implements ActionWithPayload<Spot> {
-  readonly type = CREATE_SPOT;
-  payload: Spot;
+  constructor(public payload: { spot: Spot }) {}
+}
+export class AddSpots implements Action {
+  readonly type = SpotActionTypes.ADD_SPOTS;
 
-  constructor(payload: Spot) {
-    this.payload = payload;
-  }
+  constructor(public payload: { spots: Spot[] }) {}
 }
 
-export type All = GetSpot | CreateSpot;
+export type SpotActionsUnion = GetSpot | AddSpot | AddSpots;

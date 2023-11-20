@@ -1,22 +1,13 @@
 import {
-  AfterViewInit,
   Component,
-  EventEmitter,
-  Injector,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
-  Output,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
 import {
   Map,
-  Control,
-  DomUtil,
-  ZoomAnimEvent,
-  Layer,
   MapOptions,
   tileLayer,
   latLng,
@@ -25,6 +16,7 @@ import {
   Popup,
   LatLng,
   MarkerClusterGroup,
+  Marker,
 } from 'leaflet';
 import { NewSpotComponent } from './new-spot-popup/new-spot-popup.component';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
@@ -36,15 +28,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { Observable } from 'rxjs';
 import { Spot } from '../core/models/spot.model';
 import { Action, Store, select } from '@ngrx/store';
-import { SpotState } from '../core/store/spot/spot.state';
 import {
-  CREATE_SPOT,
-  CreateSpot,
-  GET_SPOT,
-  GetSpot,
+  AddSpot,
+  AddSpots,
+  SpotActionTypes,
 } from '../core/store/spot/spot.action';
-import ActionWithPayload from '../core/store/action';
 import { AppState } from '../core/store/app.state';
+import { SpotState } from '../core/store/spot/spot.state';
 @Component({
   selector: 'cs-map',
   // templateUrl: './map.component.html',
@@ -112,28 +102,36 @@ export class MapComponent implements OnInit, OnDestroy {
   private map: Map;
   private popup: Popup = new Popup();
   private zoom: number = 0;
-  private spots$: Observable<Array<Spot>>;
+  private spots$: Observable<SpotState>;
   constructor(
     private spotService: SpotService,
     private popupService: PopupService,
     private store: Store<AppState>
   ) {
-    this.spots$ = this.store.select((store) => store.spots.SpotList);
-    console.log(this.store.select((store) => store.spots.SpotList));
-    console.log(this.spots$);
-    this.store.subscribe((a) => console.log(a.spots.SpotList));
+    this.spots$ = this.store.select((store) => store.spots);
+    this.spots$.subscribe((spots: SpotState) => {
+      this.clusterGroup?.clearLayers();
+      for (const id of spots.ids) {
+        const newSpot = spots.entities[id];
+        if (!newSpot) {
+          return;
+        }
+        const marker = new Marker(newSpot.coordinates);
+        const layer = marker.bindPopup(`
+						<h1>Spot</h1>
+						<div>id: ${newSpot.id}</div>
+						<div>name: ${newSpot.name}</div>
+						<div>des: ${newSpot.des}</div>
+						<div>address: ${newSpot.address}</div>
+						<div>cords: ${newSpot.coordinates}</div>
+					`);
+        this.clusterGroup.addLayer(layer);
+        this.clusterGroup.addTo(this.map);
+      }
+    });
   }
 
   ngOnInit() {
-    let createSpotAction: ActionWithPayload<Spot> = {
-      type: CREATE_SPOT,
-      payload: { id: 1, name: 'a', des: 's' },
-    };
-
-    let getSpotAction: Action = {
-      type: GET_SPOT,
-    };
-
     this.clusterGroup = new MarkerClusterGroup({
       removeOutsideVisibleBounds: true,
       zoomToBoundsOnClick: false,
@@ -155,9 +153,17 @@ export class MapComponent implements OnInit, OnDestroy {
           .openOn(this.map);
       })
       .on('mouseout', (event) => {
-        this.map.closePopup();
+        // this.map.closePopup();
       });
-    this.spotService.clusterGroup = this.clusterGroup;
+    let createSpotAction = new AddSpot({
+      spot: { id: 1, name: 'a', des: 's' } as Spot,
+    });
+
+    // this.store.dispatch(createSpotAction);
+
+    let getSpotAction: Action = {
+      type: SpotActionTypes.GET_SPOT,
+    };
   }
 
   ngOnDestroy() {
@@ -166,7 +172,6 @@ export class MapComponent implements OnInit, OnDestroy {
   }
   public onMapReady(map: Map) {
     this.map = map;
-    this.spotService.newMap = this.map;
     this.zoom = map.getZoom();
 
     this.map.setView([50.05, 19.95], 13);
@@ -191,16 +196,31 @@ export class MapComponent implements OnInit, OnDestroy {
   };
 
   public genRandomSpots(): void {
+    const newSpots: Spot[] = [];
     for (let i = 0; i < 300; i++) {
-      this.spotService.cords = {
-        lat: Math.random() * 0.15 + 50,
-        lng: Math.random() * 0.4 + 19.8,
-      } as LatLng;
-      this.spotService.createSpot('losT', 'losD');
+      newSpots.push({
+        id: Math.floor(Math.random() * 10000),
+        name: 'los',
+        des: 'los',
+        coordinates: {
+          lat: Math.random() * 0.15 + 50,
+          lng: Math.random() * 0.4 + 19.8,
+        } as LatLng,
+      } as Spot);
     }
+    this.store.dispatch(new AddSpots({ spots: newSpots }));
   }
 
   public addSpot(): void {
-    this.store.dispatch(new CreateSpot({ id: 1 } as Spot));
+    const newSpot: Spot = {
+      id: Math.floor(Math.random() * 10000),
+      name: 'los',
+      des: 'los',
+      coordinates: {
+        lat: Math.random() * 0.15 + 50,
+        lng: Math.random() * 0.4 + 19.8,
+      } as LatLng,
+    };
+    this.store.dispatch(new AddSpot({ spot: newSpot }));
   }
 }

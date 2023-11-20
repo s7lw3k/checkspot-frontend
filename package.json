@@ -23,6 +23,7 @@
     "@asymmetrik/ngx-leaflet": "^16.0.1",
     "@asymmetrik/ngx-leaflet-markercluster": "^16.0.0",
     "@ngrx/effects": "^16.3.0",
+    "@ngrx/entity": "^16.3.0",
     "@ngrx/store": "^16.3.0",
     "@types/leaflet.markercluster": "^1.5.4",
     "leaflet": "^1.9.4",
