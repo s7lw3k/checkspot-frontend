@@ -11,11 +11,14 @@ export interface SpotState extends EntityState<Spot> {
   Loading: boolean;
   Loaded: boolean;
   ids: string[] | number[];
+  entities: Dictionary<Spot>;
+  selectedSpotId: number | null;
 }
 
 export const initialState: SpotState = adapter.getInitialState({
   Loading: false,
   Loaded: true,
   ids: [],
-  Spots: {},
+  entities: {},
+  selectedSpotId: null,
 });

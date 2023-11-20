@@ -27,7 +27,7 @@ import { LeafletMarkerClusterModule } from '@asymmetrik/ngx-leaflet-markercluste
 import { MatButtonModule } from '@angular/material/button';
 import { Observable } from 'rxjs';
 import { Spot } from '../core/models/spot.model';
-import { Action, Store, select } from '@ngrx/store';
+import { Action, Store } from '@ngrx/store';
 import {
   AddSpot,
   AddSpots,
@@ -35,6 +35,10 @@ import {
 } from '../core/store/spot/spot.action';
 import { AppState } from '../core/store/app.state';
 import { SpotState } from '../core/store/spot/spot.state';
+import {
+  selectAllSpots,
+  selectSpotTotal,
+} from '../core/store/spot/spot.selectors';
 @Component({
   selector: 'cs-map',
   // templateUrl: './map.component.html',
@@ -102,22 +106,25 @@ export class MapComponent implements OnInit, OnDestroy {
   private map: Map;
   private popup: Popup = new Popup();
   private zoom: number = 0;
-  private spots$: Observable<SpotState>;
+  private spots$: Observable<Spot[]>;
+  private addMarker: Marker;
   constructor(
     private spotService: SpotService,
     private popupService: PopupService,
     private store: Store<AppState>
   ) {
-    this.spots$ = this.store.select((store) => store.spots);
-    this.spots$.subscribe((spots: SpotState) => {
-      this.clusterGroup?.clearLayers();
-      for (const id of spots.ids) {
-        const newSpot = spots.entities[id];
-        if (!newSpot) {
-          return;
-        }
-        const marker = new Marker(newSpot.coordinates);
-        const layer = marker.bindPopup(`
+    this.spots$ = this.store.select(selectAllSpots);
+    this.store
+      .select((store) => store.spots)
+      .subscribe((spots: SpotState) => {
+        this.clusterGroup?.clearLayers();
+        for (const id of spots.ids) {
+          const newSpot = spots.entities[id];
+          if (!newSpot) {
+            return;
+          }
+          const marker = new Marker(newSpot.coordinates);
+          const layer = marker.bindPopup(`
 						<h1>Spot</h1>
 						<div>id: ${newSpot.id}</div>
 						<div>name: ${newSpot.name}</div>
@@ -125,10 +132,10 @@ export class MapComponent implements OnInit, OnDestroy {
 						<div>address: ${newSpot.address}</div>
 						<div>cords: ${newSpot.coordinates}</div>
 					`);
-        this.clusterGroup.addLayer(layer);
-        this.clusterGroup.addTo(this.map);
-      }
-    });
+          this.clusterGroup.addLayer(layer);
+          this.clusterGroup.addTo(this.map);
+        }
+      });
   }
 
   ngOnInit() {
@@ -141,16 +148,32 @@ export class MapComponent implements OnInit, OnDestroy {
       .on('clusterclick', (cluster: any) => {
         this.map.closePopup();
         let popupContent: string = '';
-        popupContent += '<h1>Markery w środku</h1>';
-        for (const marker of cluster.layer.getAllChildMarkers()) {
-          popupContent += `<p>${marker}</p>`;
+        popupContent +=
+          '<h1>Markery w środku</h1><div class="cs-marker-popup">';
+        for (const marker of cluster.layer.getAllChildMarkers() as Marker[]) {
+          let finedSpot: Spot | undefined;
+          this.spots$.subscribe((spots) => {
+            finedSpot = spots.find(
+              (spot: Spot) =>
+                spot.coordinates.lat === marker.getLatLng().lat &&
+                spot.coordinates.lng === marker.getLatLng().lng
+            );
+          });
+          if (finedSpot) {
+            popupContent += '<div class="cs-marker-popup--spot">';
+            popupContent += `<p>name: ${finedSpot.name}</p>`;
+            popupContent += `<p>id: ${finedSpot.id}</p>`;
+            popupContent += '</div>';
+          }
         }
+        popupContent += `</div>`;
         const popup = new Popup()
           .setLatLng(cluster.layer.getLatLng())
-          .setContent(
-            cluster.layer.getChildCount() + ' Locations(click to Zoom)'
-          )
+          .setContent(popupContent)
           .openOn(this.map);
+        for (const a of cluster.layer.getAllChildMarkers()) {
+          console.log(a as Marker);
+        }
       })
       .on('mouseout', (event) => {
         // this.map.closePopup();
@@ -183,16 +206,25 @@ export class MapComponent implements OnInit, OnDestroy {
 
   public onMapZoomEnd(e: LeafletEvent) {
     this.zoom = e.target.getZoom();
+    this.map.closePopup();
   }
 
   private addPin = (event: any) => {
-    this.spotService.cords = event.latlng;
-    this.popupService.newPopup = this.popup;
-
-    this.popup
-      .setLatLng(event.latlng)
-      .setContent(this.popContent.elementRef.nativeElement.nextElementSibling)
-      .openOn(this.map);
+    if (this.addMarker) this.map.removeLayer(this.addMarker);
+    this.addMarker = new Marker(event.latlng, { draggable: true });
+    this.map.addLayer(this.addMarker);
+    this.addMarker.on('dragend', (event) => {
+      this.addMarker = event.target;
+    });
+    this.addMarker.on('click', (event) => {
+      this.spotService.cords = event.latlng;
+      this.popupService.newPopup = this.popup;
+      this.popup
+        .setLatLng(event.latlng)
+        .setContent(this.popContent.elementRef.nativeElement.nextElementSibling)
+        .openOn(this.map);
+      this.map.removeLayer(this.addMarker);
+    });
   };
 
   public genRandomSpots(): void {
@@ -203,8 +235,8 @@ export class MapComponent implements OnInit, OnDestroy {
         name: 'los',
         des: 'los',
         coordinates: {
-          lat: Math.random() * 0.15 + 50,
-          lng: Math.random() * 0.4 + 19.8,
+          lat: Math.random() * 0.05 + 50.05,
+          lng: Math.random() * 0.2 + 19.9,
         } as LatLng,
       } as Spot);
     }
@@ -217,8 +249,8 @@ export class MapComponent implements OnInit, OnDestroy {
       name: 'los',
       des: 'los',
       coordinates: {
-        lat: Math.random() * 0.15 + 50,
-        lng: Math.random() * 0.4 + 19.8,
+        lat: Math.random() * 0.05 + 50.05,
+        lng: Math.random() * 0.2 + 19.9,
       } as LatLng,
     };
     this.store.dispatch(new AddSpot({ spot: newSpot }));

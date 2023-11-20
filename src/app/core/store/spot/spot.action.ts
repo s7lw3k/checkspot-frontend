@@ -1,5 +1,4 @@
 import { Action } from '@ngrx/store';
-import ActionWithPayload from '../action';
 import { Spot } from '../../models/spot.model';
 
 export enum SpotActionTypes {

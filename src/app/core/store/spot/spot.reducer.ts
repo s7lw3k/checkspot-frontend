@@ -21,3 +21,14 @@ export function SpotReducer(state = initialState, action: Action): SpotState {
       return state;
   }
 }
+
+const { selectIds, selectEntities, selectAll, selectTotal } =
+  adapter.getSelectors();
+
+export const selectSpotIds = selectIds;
+
+export const selectSpotEntities = selectEntities;
+
+export const selectAllSpots = selectAll;
+
+export const selectSpotTotal = selectTotal;

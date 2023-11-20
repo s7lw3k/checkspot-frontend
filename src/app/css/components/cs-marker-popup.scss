@@ -1,0 +1,13 @@
+.cs-marker-popup {
+    max-height: 300px;
+    overflow: auto;
+    &--spot {
+        margin: 10px 0;
+        padding: 0 2px;
+        border-radius: 3px;
+        background-color: lightgray;
+        &:hover {
+            background-color: lightblue;
+        }
+    }
+}
