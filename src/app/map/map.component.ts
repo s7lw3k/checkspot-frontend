@@ -178,14 +178,9 @@ export class MapComponent implements OnInit, OnDestroy {
           console.log(a as Marker);
         }
       })
-      .on('mouseout', (event) => {
-        // this.map.closePopup();
-      });
     let createSpotAction = new AddSpot({
       spot: { id: 1, name: 'a', des: 's' } as Spot,
     });
-
-    // this.store.dispatch(createSpotAction);
 
     let getSpotAction: Action = {
       type: SpotActionTypes.GET_SPOT,
