@@ -17,6 +17,9 @@ import {
   LatLng,
   MarkerClusterGroup,
   Marker,
+  DivIcon,
+  Icon,
+  Point,
 } from 'leaflet';
 import { NewSpotComponent } from './new-spot-popup/new-spot-popup.component';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
@@ -211,11 +214,16 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private addPin = (event: any) => {
     if (this.addMarker) this.map.removeLayer(this.addMarker);
-    this.addMarker = new Marker(event.latlng, { draggable: true });
-    this.map.addLayer(this.addMarker);
-    this.addMarker.on('dragend', (event) => {
-      this.addMarker = event.target;
+    const icon = new Icon({
+      iconUrl: '../../assets/addMarker.png',
+      iconSize: new Point(56, 150),
+      className: 'cs-marker-popup--bg-icon',
     });
+    this.addMarker = new Marker(event.latlng, {
+      draggable: true,
+      icon,
+    });
+    this.map.addLayer(this.addMarker);
     this.addMarker.on('click', (event) => {
       this.spotService.cords = event.latlng;
       this.popupService.newPopup = this.popup;
