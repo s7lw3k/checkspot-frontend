@@ -16,7 +16,8 @@ import { StoreModule } from '@ngrx/store';
 import { reducers } from './core/store/app.state';
 import { StarComponent } from './shared/components/stars.component';
 import { NewSpotSectionComponent } from './map/new-spot/new-spot-section/new-spot-section.component';
-import { ShowSpotsComponent } from './map/show-spots/show-spots.component';
+import { ShowSpotsComponent } from './map/show-spot/show-spots/show-spots.component';
+import { ShowSpotDetailComponent } from './map/show-spot/show-spot-detail/show-spot-detail.component';
 
 @NgModule({
   declarations: [AppComponent],
@@ -34,6 +35,7 @@ import { ShowSpotsComponent } from './map/show-spots/show-spots.component';
     StarComponent,
     NewSpotSectionComponent,
     ShowSpotsComponent,
+    ShowSpotDetailComponent,
   ],
   providers: [provideAnimations()],
   bootstrap: [AppComponent],

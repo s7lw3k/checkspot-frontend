@@ -10,17 +10,16 @@ import { Spot } from 'src/app/core/models/spot.model';
 
 @Component({
   selector: 'cs-show-spots',
-  template: ` <h1>Markery w środku</h1>
-    <div class="cs-marker-popup">
-      <div
-        *ngFor="let spot of spots"
-        class="cs-marker-popup--spot"
-        (click)="handleSelect(spot)"
-      >
-        <p>name: {{ spot.name }}</p>
-        <p>id: {{ spot.id }}</p>
-      </div>
-    </div>`,
+  template: ` <div class="cs-show-spots">
+    <div
+      *ngFor="let spot of spots"
+      class="cs-show-spots--spot"
+      (click)="handleSelect(spot)"
+    >
+      <p>name: {{ spot.name }}</p>
+      <p>id: {{ spot.id }}</p>
+    </div>
+  </div>`,
   standalone: true,
   imports: [CommonModule],
 })

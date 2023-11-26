@@ -37,7 +37,8 @@ import {
 import { AppState } from '../core/store/app.state';
 import { SpotState } from '../core/store/spot/spot.state';
 import { selectAllSpots } from '../core/store/spot/spot.selectors';
-import { ShowSpotsComponent } from './show-spots/show-spots.component';
+import { ShowSpotsComponent } from './show-spot/show-spots/show-spots.component';
+import { ShowSpotDetailComponent } from './show-spot/show-spot-detail/show-spot-detail.component';
 @Component({
   selector: 'cs-map',
   // templateUrl: './map.component.html',
@@ -58,6 +59,7 @@ import { ShowSpotsComponent } from './show-spots/show-spots.component';
       (submitNewSpot)="handleNewSpotSubmit()"
       [(visible)]="isAddSpotComponentVisible"
     ></new-spot>
+    <show-spot-detail [spot]="detailSpot"></show-spot-detail>
     <button
       style="z-index: 10000; position: relative; margin: 20px;"
       mat-raised-button
@@ -82,6 +84,7 @@ import { ShowSpotsComponent } from './show-spots/show-spots.component';
     LeafletMarkerClusterModule,
     MatButtonModule,
     ShowSpotsComponent,
+    ShowSpotDetailComponent,
   ],
 })
 export class MapComponent implements OnInit, OnDestroy {
@@ -120,7 +123,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private showSpotsComponent: ComponentRef<ShowSpotsComponent>;
 
-  private detailSpot: Spot;
+  public detailSpot: Spot;
 
   private subscriptions: Subscription = new Subscription();
 
@@ -164,29 +167,29 @@ export class MapComponent implements OnInit, OnDestroy {
     });
     this.clusterGroup.on('clusterclick', (cluster: any) => {
       this.map.closePopup();
-      let spots: Spot[] = [];
+      let finedSpots: Spot[] = [];
       for (const marker of cluster.layer.getAllChildMarkers() as Marker[]) {
-        let finedSpot: Spot | undefined;
         this.spots$
           .subscribe((spots) => {
-            finedSpot = spots.find(
+            const finedSpot = spots.find(
               (spot: Spot) =>
                 spot.coordinates.lat === marker.getLatLng().lat &&
                 spot.coordinates.lng === marker.getLatLng().lng
             );
+            if (finedSpot) {
+              finedSpots.push(finedSpot);
+            }
           })
           .unsubscribe();
-        if (finedSpot) {
-          spots.push(finedSpot);
-        }
       }
 
       this.showSpotsComponent?.destroy();
       this.showSpotsComponent =
         this.viewContainerRef.createComponent(ShowSpotsComponent);
-      this.showSpotsComponent.instance.spots = spots;
+      this.showSpotsComponent.instance.spots = finedSpots;
+      let popup: Popup;
       this.ngZone.run(() => {
-        const popup = new Popup()
+        popup = new Popup()
           .setLatLng(cluster.layer.getLatLng())
           .setContent(this.showSpotsComponent.location.nativeElement)
           .openOn(this.map);
@@ -195,6 +198,7 @@ export class MapComponent implements OnInit, OnDestroy {
         this.showSpotsComponent.instance.selectedSpot.subscribe(
           (spotToDisplay) => {
             this.detailSpot = spotToDisplay;
+            popup.close();
           }
         )
       );
