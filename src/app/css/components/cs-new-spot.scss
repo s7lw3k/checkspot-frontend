@@ -1,0 +1,39 @@
+.cs-new-spot {
+    font-size: 16px;
+    position: relative;
+    top: 10%;
+    left: max(0px, 2.5%);
+    z-index: 1000;
+    background-color: white;
+    width: 450px;
+    height: 650px;
+    border-radius: 10px;
+    padding: 2em;
+    transform-origin: top left;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+    &--topBar {
+        width: 100%;
+        display: flex;
+        padding: 0 0 2em 0;
+        justify-content: space-between;
+        align-items: center;
+        &__title {
+            font-size: 18px;
+            line-height: 21px;
+            font-weight: 500;
+        }
+    }
+    &--bottomBar {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        padding: 2em 2em;
+        display: flex;
+        justify-content: flex-end;
+        gap: 2em;
+        button {
+            padding: 1em;
+            font-size: 1.2em;
+        }
+    }
+}

@@ -1,10 +1,11 @@
 import {
   Component,
+  ComponentRef,
   Input,
+  NgZone,
   OnDestroy,
   OnInit,
-  TemplateRef,
-  ViewChild,
+  ViewContainerRef,
 } from '@angular/core';
 import {
   Map,
@@ -17,18 +18,15 @@ import {
   LatLng,
   MarkerClusterGroup,
   Marker,
-  DivIcon,
   Icon,
   Point,
 } from 'leaflet';
-import { NewSpotComponent } from './new-spot-popup/new-spot-popup.component';
+import { NewSpotComponent } from './new-spot/new-spot.component';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { CommonModule } from '@angular/common';
-import { SpotService } from '../core/services/spot.service';
-import { PopupService } from '../core/services/popup.service';
 import { LeafletMarkerClusterModule } from '@asymmetrik/ngx-leaflet-markercluster';
 import { MatButtonModule } from '@angular/material/button';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { Spot } from '../core/models/spot.model';
 import { Action, Store } from '@ngrx/store';
 import {
@@ -38,10 +36,8 @@ import {
 } from '../core/store/spot/spot.action';
 import { AppState } from '../core/store/app.state';
 import { SpotState } from '../core/store/spot/spot.state';
-import {
-  selectAllSpots,
-  selectSpotTotal,
-} from '../core/store/spot/spot.selectors';
+import { selectAllSpots } from '../core/store/spot/spot.selectors';
+import { ShowSpotsComponent } from './show-spots/show-spots.component';
 @Component({
   selector: 'cs-map',
   // templateUrl: './map.component.html',
@@ -56,9 +52,12 @@ import {
           (leafletMapZoomEnd)="onMapZoomEnd($event)"
         ></div>
       </div>
-      <ng-template #popupContent></ng-template>
-      <new-spot-popup></new-spot-popup>
     </div>
+    <new-spot
+      [newCords]="newCords"
+      (submitNewSpot)="handleNewSpotSubmit()"
+      [(visible)]="isAddSpotComponentVisible"
+    ></new-spot>
     <button
       style="z-index: 10000; position: relative; margin: 20px;"
       mat-raised-button
@@ -82,17 +81,15 @@ import {
     CommonModule,
     LeafletMarkerClusterModule,
     MatButtonModule,
+    ShowSpotsComponent,
   ],
 })
 export class MapComponent implements OnInit, OnDestroy {
-  private clusterGroup: MarkerClusterGroup;
   private bounds = latLngBounds([
     [50, 19.8],
     [50.15, 20.2],
   ]);
 
-  @ViewChild('popupContent')
-  popContent: TemplateRef<NewSpotComponent>;
   @Input() options: MapOptions = {
     layers: [
       tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -106,39 +103,57 @@ export class MapComponent implements OnInit, OnDestroy {
     zoom: 1,
     center: latLng(0, 0),
   };
+
   private map: Map;
-  private popup: Popup = new Popup();
+
   private zoom: number = 0;
+
   private spots$: Observable<Spot[]>;
-  private addMarker: Marker;
+
+  private newSpotMarker: Marker;
+
+  public newCords: LatLng;
+
+  public isAddSpotComponentVisible: boolean = false;
+
+  private clusterGroup: MarkerClusterGroup;
+
+  private showSpotsComponent: ComponentRef<ShowSpotsComponent>;
+
+  private detailSpot: Spot;
+
+  private subscriptions: Subscription = new Subscription();
+
   constructor(
-    private spotService: SpotService,
-    private popupService: PopupService,
-    private store: Store<AppState>
+    private store: Store<AppState>,
+    private ngZone: NgZone,
+    private viewContainerRef: ViewContainerRef
   ) {
     this.spots$ = this.store.select(selectAllSpots);
-    this.store
-      .select((store) => store.spots)
-      .subscribe((spots: SpotState) => {
-        this.clusterGroup?.clearLayers();
-        for (const id of spots.ids) {
-          const newSpot = spots.entities[id];
-          if (!newSpot) {
-            return;
-          }
-          const marker = new Marker(newSpot.coordinates);
-          const layer = marker.bindPopup(`
+    this.subscriptions.add(
+      this.store
+        .select((store) => store.spots)
+        .subscribe((spots: SpotState) => {
+          this.clusterGroup?.clearLayers();
+          for (const id of spots.ids) {
+            const newSpot = spots.entities[id];
+            if (!newSpot) {
+              return;
+            }
+            const marker = new Marker(newSpot.coordinates);
+            const layer = marker.bindPopup(`
 						<h1>Spot</h1>
 						<div>id: ${newSpot.id}</div>
 						<div>name: ${newSpot.name}</div>
 						<div>des: ${newSpot.des}</div>
-						<div>address: ${newSpot.address}</div>
+						<div>Opinia: ${newSpot.opinion}</div>
 						<div>cords: ${newSpot.coordinates}</div>
 					`);
-          this.clusterGroup.addLayer(layer);
-          this.clusterGroup.addTo(this.map);
-        }
-      });
+            this.clusterGroup.addLayer(layer);
+            this.clusterGroup.addTo(this.map);
+          }
+        })
+    );
   }
 
   ngOnInit() {
@@ -147,50 +162,51 @@ export class MapComponent implements OnInit, OnDestroy {
       zoomToBoundsOnClick: false,
       showCoverageOnHover: false,
     });
-    this.clusterGroup
-      .on('clusterclick', (cluster: any) => {
-        this.map.closePopup();
-        let popupContent: string = '';
-        popupContent +=
-          '<h1>Markery w środku</h1><div class="cs-marker-popup">';
-        for (const marker of cluster.layer.getAllChildMarkers() as Marker[]) {
-          let finedSpot: Spot | undefined;
-          this.spots$.subscribe((spots) => {
+    this.clusterGroup.on('clusterclick', (cluster: any) => {
+      this.map.closePopup();
+      let spots: Spot[] = [];
+      for (const marker of cluster.layer.getAllChildMarkers() as Marker[]) {
+        let finedSpot: Spot | undefined;
+        this.spots$
+          .subscribe((spots) => {
             finedSpot = spots.find(
               (spot: Spot) =>
                 spot.coordinates.lat === marker.getLatLng().lat &&
                 spot.coordinates.lng === marker.getLatLng().lng
             );
-          });
-          if (finedSpot) {
-            popupContent += '<div class="cs-marker-popup--spot">';
-            popupContent += `<p>name: ${finedSpot.name}</p>`;
-            popupContent += `<p>id: ${finedSpot.id}</p>`;
-            popupContent += '</div>';
-          }
+          })
+          .unsubscribe();
+        if (finedSpot) {
+          spots.push(finedSpot);
         }
-        popupContent += `</div>`;
+      }
+
+      this.showSpotsComponent?.destroy();
+      this.showSpotsComponent =
+        this.viewContainerRef.createComponent(ShowSpotsComponent);
+      this.showSpotsComponent.instance.spots = spots;
+      this.ngZone.run(() => {
         const popup = new Popup()
           .setLatLng(cluster.layer.getLatLng())
-          .setContent(popupContent)
+          .setContent(this.showSpotsComponent.location.nativeElement)
           .openOn(this.map);
-        for (const a of cluster.layer.getAllChildMarkers()) {
-          console.log(a as Marker);
-        }
-      })
-    let createSpotAction = new AddSpot({
-      spot: { id: 1, name: 'a', des: 's' } as Spot,
+      });
+      this.subscriptions.add(
+        this.showSpotsComponent.instance.selectedSpot.subscribe(
+          (spotToDisplay) => {
+            this.detailSpot = spotToDisplay;
+          }
+        )
+      );
     });
-
-    let getSpotAction: Action = {
-      type: SpotActionTypes.GET_SPOT,
-    };
   }
 
   ngOnDestroy() {
+    this.subscriptions.unsubscribe();
     this.map.clearAllEventListeners;
     this.map.remove();
   }
+
   public onMapReady(map: Map) {
     this.map = map;
     this.zoom = map.getZoom();
@@ -198,8 +214,7 @@ export class MapComponent implements OnInit, OnDestroy {
     this.map.setView([50.05, 19.95], 13);
 
     this.map.setMaxBounds(this.bounds);
-
-    this.map.on('click', this.addPin);
+    this.map.on('click', this.createNewSpotPin);
   }
 
   public onMapZoomEnd(e: LeafletEvent) {
@@ -207,26 +222,28 @@ export class MapComponent implements OnInit, OnDestroy {
     this.map.closePopup();
   }
 
-  private addPin = (event: any) => {
-    if (this.addMarker) this.map.removeLayer(this.addMarker);
-    const icon = new Icon({
-      iconUrl: '../../assets/addMarker.png',
-      iconSize: new Point(56, 150),
-      className: 'cs-marker-popup--bg-icon',
-    });
-    this.addMarker = new Marker(event.latlng, {
+  private createNewSpotPin = (event: any) => {
+    if (this.newSpotMarker) this.map.removeLayer(this.newSpotMarker);
+
+    const icon = this.getNewSpotMarkerIcon();
+
+    this.newSpotMarker = new Marker(event.latlng, {
       draggable: true,
       icon,
     });
-    this.map.addLayer(this.addMarker);
-    this.addMarker.on('click', (event) => {
-      this.spotService.cords = event.latlng;
-      this.popupService.newPopup = this.popup;
-      this.popup
-        .setLatLng(event.latlng)
-        .setContent(this.popContent.elementRef.nativeElement.nextElementSibling)
-        .openOn(this.map);
-      this.map.removeLayer(this.addMarker);
+
+    this.map.addLayer(this.newSpotMarker);
+
+    this.newSpotMarker.on('click', (event) => {
+      this.ngZone.run(() => {
+        this.isAddSpotComponentVisible = true;
+        this.newCords = event.latlng;
+      });
+    });
+    this.newSpotMarker.on('dragend', () => {
+      this.ngZone.run(() => {
+        this.newCords = this.newSpotMarker.getLatLng();
+      });
     });
   };
 
@@ -257,5 +274,17 @@ export class MapComponent implements OnInit, OnDestroy {
       } as LatLng,
     };
     this.store.dispatch(new AddSpot({ spot: newSpot }));
+  }
+
+  private getNewSpotMarkerIcon(): Icon {
+    return new Icon({
+      iconUrl: '../../assets/addMarker_big.png',
+      iconSize: new Point(30, 80),
+      className: 'cs-marker-popup--bg-icon',
+    });
+  }
+
+  public handleNewSpotSubmit(): void {
+    this.map.removeLayer(this.newSpotMarker);
   }
 }

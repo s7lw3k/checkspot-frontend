@@ -22,6 +22,7 @@
     "@angular/router": "^17.0.4",
     "@asymmetrik/ngx-leaflet": "^17.0.0",
     "@asymmetrik/ngx-leaflet-markercluster": "^17.0.0",
+    "@fortawesome/angular-fontawesome": "^0.14.0",
     "@ngrx/effects": "^17.0.0",
     "@ngrx/entity": "^17.0.0",
     "@ngrx/store": "^17.0.0",
