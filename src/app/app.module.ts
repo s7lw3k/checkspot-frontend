@@ -11,9 +11,12 @@ import {
 import { LoginComponent } from './login/login.component';
 import { RegisterPanelComponent } from './login/register-panel/register-panel.component';
 import { HttpClientModule } from '@angular/common/http';
-import { NewSpotComponent } from './map/new-spot-popup/new-spot-popup.component';
+import { NewSpotComponent } from './map/new-spot/new-spot.component';
 import { StoreModule } from '@ngrx/store';
 import { reducers } from './core/store/app.state';
+import { StarComponent } from './shared/components/stars.component';
+import { NewSpotSectionComponent } from './map/new-spot/new-spot-section/new-spot-section.component';
+import { ShowSpotsComponent } from './map/show-spots/show-spots.component';
 
 @NgModule({
   declarations: [AppComponent],
@@ -28,6 +31,9 @@ import { reducers } from './core/store/app.state';
     HttpClientModule,
     NewSpotComponent,
     StoreModule.forRoot(reducers),
+    StarComponent,
+    NewSpotSectionComponent,
+    ShowSpotsComponent,
   ],
   providers: [provideAnimations()],
   bootstrap: [AppComponent],

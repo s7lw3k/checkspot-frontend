@@ -1,0 +1,23 @@
+.cs-stars {
+    display: flex;
+    &--star {
+        position: relative;
+        cursor: pointer;
+    }
+    &--selectL {
+        position: absolute;
+        width: 12px;
+        height: 24px;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+    &--selectR {
+        position: absolute;
+        width: 12px;
+        height: 24px;
+        top: 0;
+        left: 10px;
+        z-index: 2;
+    }
+}
