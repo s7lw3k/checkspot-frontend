@@ -6,7 +6,9 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
+import { Opinion } from 'src/app/core/models/opinion.model';
 import { Spot } from 'src/app/core/models/spot.model';
+import { StarComponent } from 'src/app/shared/components/stars.component';
 
 @Component({
   selector: 'cs-show-spots',
@@ -16,12 +18,17 @@ import { Spot } from 'src/app/core/models/spot.model';
       class="cs-show-spots--spot"
       (click)="handleSelect(spot)"
     >
-      <p>name: {{ spot.name }}</p>
-      <p>id: {{ spot.id }}</p>
+      <div class="cs-show-spots--content">{{ spot.opinion.shortContent }}</div>
+      <div class="cs-show-spots--date">
+        {{ spot.issuedDate | date : 'dd.MM.yyyy' }}
+      </div>
+      <cs-stars [editable]="false" [selection]="getAverageRate(spot.opinion)"
+        >id: {{ spot.id }}</cs-stars
+      >
     </div>
   </div>`,
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, StarComponent],
 })
 export class ShowSpotsComponent implements OnInit, OnDestroy {
   spots: Spot[] = [];
@@ -33,5 +40,15 @@ export class ShowSpotsComponent implements OnInit, OnDestroy {
 
   public handleSelect(spot: Spot): void {
     this.selectedSpot.emit(spot);
+  }
+
+  public getAverageRate(opinion: Opinion): number {
+    return Math.floor(
+      (opinion.internetRating +
+        opinion.neighborRating +
+        opinion.neighborhoodRating +
+        opinion.communicationRating) /
+        4
+    );
   }
 }

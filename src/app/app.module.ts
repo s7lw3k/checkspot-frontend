@@ -18,6 +18,7 @@ import { StarComponent } from './shared/components/stars.component';
 import { NewSpotSectionComponent } from './map/new-spot/new-spot-section/new-spot-section.component';
 import { ShowSpotsComponent } from './map/show-spot/show-spots/show-spots.component';
 import { ShowSpotDetailComponent } from './map/show-spot/show-spot-detail/show-spot-detail.component';
+import { ShowSpotComponent } from './map/show-spot/show-spot/show-spot.component';
 
 @NgModule({
   declarations: [AppComponent],
@@ -36,6 +37,7 @@ import { ShowSpotDetailComponent } from './map/show-spot/show-spot-detail/show-s
     NewSpotSectionComponent,
     ShowSpotsComponent,
     ShowSpotDetailComponent,
+    ShowSpotComponent,
   ],
   providers: [provideAnimations()],
   bootstrap: [AppComponent],

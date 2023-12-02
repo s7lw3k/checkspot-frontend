@@ -1,13 +1,13 @@
 import { User } from './user.model';
 import { Opinion } from './opinion.model';
 import { LatLng } from 'leaflet';
+import { Address } from './address.model';
 
 export interface Spot {
   id: number;
-  name?: string;
-  des?: string;
-  // address?: Address;
-  issuedBy?: User;
-  opinion?: Opinion;
+  address: Address;
+  issuedBy: User;
+  opinion: Opinion;
+  issuedDate: Date;
   coordinates: LatLng;
 }

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from './core/models/user.model';
+import { AuthenticationService } from './core/services/authentication.service';
 
 @Component({
   selector: 'app-root',
@@ -8,20 +9,16 @@ import { User } from './core/models/user.model';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  private user: User = {
-    id: 1,
-    name: 'admin',
-    mail: 'a@a.com',
-    password: 'a',
-    createdDate: new Date(),
-    darkMode: false,
-    isLogin: true,
-  };
-  constructor(private router: Router) {
-    if (this.user.isLogin) {
-      router.navigate(['']);
-    } else {
-      router.navigate(['login']);
-    }
+  constructor(
+    private router: Router,
+    private authenticationService: AuthenticationService
+  ) {
+    this.authenticationService.currentLoggedUser.subscribe((user) => {
+      if (user.isLogin) {
+        router.navigate(['']);
+      } else {
+        router.navigate(['login']);
+      }
+    });
   }
 }

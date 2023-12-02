@@ -1,0 +1,20 @@
+.cs-show-spot {
+    font-size: 16px;
+    display: grid;
+    grid-template-columns: 1fr;
+    &--title {
+        font-size: 1.5em;
+    }
+    &--address {
+        color: #767676;
+        font-size: 1.3em;
+    }
+    &--button {
+        padding: 1em !important;
+        font-size: 1.1em;
+        justify-self: flex-end;
+        height: 3em !important;
+        width: 100%;
+        margin-top: 1em;
+    }
+}

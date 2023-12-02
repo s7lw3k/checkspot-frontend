@@ -20,6 +20,7 @@ import {
   Marker,
   Icon,
   Point,
+  Layer,
 } from 'leaflet';
 import { NewSpotComponent } from './new-spot/new-spot.component';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
@@ -39,6 +40,10 @@ import { SpotState } from '../core/store/spot/spot.state';
 import { selectAllSpots } from '../core/store/spot/spot.selectors';
 import { ShowSpotsComponent } from './show-spot/show-spots/show-spots.component';
 import { ShowSpotDetailComponent } from './show-spot/show-spot-detail/show-spot-detail.component';
+import { AuthenticationService } from '../core/services/authentication.service';
+import { Router } from '@angular/router';
+import { Opinion } from '../core/models/opinion.model';
+import { ShowSpotComponent } from './show-spot/show-spot/show-spot.component';
 @Component({
   selector: 'cs-map',
   // templateUrl: './map.component.html',
@@ -54,26 +59,33 @@ import { ShowSpotDetailComponent } from './show-spot/show-spot-detail/show-spot-
         ></div>
       </div>
     </div>
-    <new-spot
-      [newCords]="newCords"
-      (submitNewSpot)="handleNewSpotSubmit()"
-      [(visible)]="isAddSpotComponentVisible"
-    ></new-spot>
-    <show-spot-detail [spot]="detailSpot"></show-spot-detail>
     <button
-      style="z-index: 10000; position: relative; margin: 20px;"
+      style="z-index: 10000; position: absolute; margin: 20px 20px;"
       mat-raised-button
       (click)="genRandomSpots()"
     >
       GenLos
     </button>
     <button
-      style="z-index: 10000; position: relative; margin: 80px;"
+      style="z-index: 10000; position: absolute; margin: 20px 110px;"
       mat-raised-button
       (click)="addSpot()"
     >
       addSpot
     </button>
+    <button
+      style="z-index: 10000; position: absolute; margin: 20px 200px;"
+      mat-raised-button
+      (click)="authenticationService.setLoginState = false"
+    >
+      logOut
+    </button>
+    <new-spot
+      [newCords]="newCords"
+      (submitNewSpot)="handleNewSpotSubmit()"
+      [(visible)]="isAddSpotComponentVisible"
+    ></new-spot>
+    <show-spot-detail [spot]="detailSpot"></show-spot-detail>
   `,
   styleUrls: ['./map.component.scss'],
   standalone: true,
@@ -130,8 +142,13 @@ export class MapComponent implements OnInit, OnDestroy {
   constructor(
     private store: Store<AppState>,
     private ngZone: NgZone,
-    private viewContainerRef: ViewContainerRef
+    private viewContainerRef: ViewContainerRef,
+    private router: Router,
+    public authenticationService: AuthenticationService
   ) {
+    this.authenticationService.currentLoggedUser.subscribe((user) => {
+      if (user === undefined || !user.isLogin) router.navigate(['login']);
+    });
     this.spots$ = this.store.select(selectAllSpots);
     this.subscriptions.add(
       this.store
@@ -143,17 +160,28 @@ export class MapComponent implements OnInit, OnDestroy {
             if (!newSpot) {
               return;
             }
-            const marker = new Marker(newSpot.coordinates);
-            const layer = marker.bindPopup(`
-						<h1>Spot</h1>
-						<div>id: ${newSpot.id}</div>
-						<div>name: ${newSpot.name}</div>
-						<div>des: ${newSpot.des}</div>
-						<div>Opinia: ${newSpot.opinion}</div>
-						<div>cords: ${newSpot.coordinates}</div>
-					`);
-            this.clusterGroup.addLayer(layer);
-            this.clusterGroup.addTo(this.map);
+            const marker = new Marker(newSpot.coordinates, {
+              icon: this.getMarkerIcon(),
+            });
+            let layer: Layer;
+            const showSpotComponent =
+              this.viewContainerRef.createComponent(ShowSpotComponent);
+            showSpotComponent.instance.spot = newSpot;
+            this.ngZone.run(() => {
+              layer = marker.bindPopup(
+                showSpotComponent.location.nativeElement
+              );
+              this.clusterGroup.addLayer(layer);
+              this.clusterGroup.addTo(this.map);
+            });
+            this.subscriptions.add(
+              showSpotComponent.instance.selectedSpot.subscribe(
+                (spotToDisplay) => {
+                  this.detailSpot = spotToDisplay;
+                  marker.closePopup();
+                }
+              )
+            );
           }
         })
     );
@@ -256,13 +284,26 @@ export class MapComponent implements OnInit, OnDestroy {
     for (let i = 0; i < 300; i++) {
       newSpots.push({
         id: Math.floor(Math.random() * 10000),
-        name: 'los',
-        des: 'los',
+        issuedDate: new Date(),
+        issuedBy: this.authenticationService.stableUser,
+        opinion: {
+          shortContent: 'Jest to losowo wygenerowana opinia',
+          content:
+            'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+          internetRating: this.getRandom(),
+          neighborhoodRating: this.getRandom(),
+          neighborRating: this.getRandom(),
+          communicationRating: this.getRandom(),
+        },
+        address: {
+          streetName: 'string',
+          houseNumber: `${this.getRandom(100)}`,
+        },
         coordinates: {
           lat: Math.random() * 0.05 + 50.05,
           lng: Math.random() * 0.2 + 19.9,
         } as LatLng,
-      } as Spot);
+      });
     }
     this.store.dispatch(new AddSpots({ spots: newSpots }));
   }
@@ -270,8 +311,20 @@ export class MapComponent implements OnInit, OnDestroy {
   public addSpot(): void {
     const newSpot: Spot = {
       id: Math.floor(Math.random() * 10000),
-      name: 'los',
-      des: 'los',
+      issuedDate: new Date(),
+      issuedBy: this.authenticationService.stableUser,
+      opinion: {
+        shortContent: 'los',
+        content: 'los',
+        internetRating: this.getRandom(),
+        neighborhoodRating: this.getRandom(),
+        neighborRating: this.getRandom(),
+        communicationRating: this.getRandom(),
+      },
+      address: {
+        streetName: 'string',
+        houseNumber: `${this.getRandom(100)}`,
+      },
       coordinates: {
         lat: Math.random() * 0.05 + 50.05,
         lng: Math.random() * 0.2 + 19.9,
@@ -282,13 +335,28 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private getNewSpotMarkerIcon(): Icon {
     return new Icon({
-      iconUrl: '../../assets/addMarker_big.png',
-      iconSize: new Point(30, 80),
+      iconUrl: '../../assets/addMarker.png',
+      iconSize: [30, 40],
+      iconAnchor: [20, 40],
+      className: 'cs-marker-popup--bg-icon',
+    });
+  }
+
+  private getMarkerIcon(): Icon {
+    return new Icon({
+      iconUrl: '../../assets/marker.png',
+      iconSize: [40, 40],
+      popupAnchor: [0, -40],
+      iconAnchor: [20, 40],
       className: 'cs-marker-popup--bg-icon',
     });
   }
 
   public handleNewSpotSubmit(): void {
     this.map.removeLayer(this.newSpotMarker);
+  }
+
+  private getRandom(to: number = 10): number {
+    return Math.round(Math.random() * to);
   }
 }

@@ -14,6 +14,7 @@ import { StarComponent } from 'src/app/shared/components/stars.component';
       <cs-stars
         [selection]="rating"
         (selectionChange)="handleChange($event)"
+        [size]="32"
       ></cs-stars>
     </div>
   `,

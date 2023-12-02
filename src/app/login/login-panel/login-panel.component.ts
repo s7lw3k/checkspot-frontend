@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -11,6 +11,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { LoginUser } from 'src/app/consts';
 import { AccountService } from '../../core/services/account.service';
+import { AuthenticationService } from 'src/app/core/services/authentication.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'cs-login-panel',
@@ -81,7 +83,11 @@ export class LoginPanelComponent implements OnInit {
     [Validators.required]
   );
 
-  constructor(private accountService: AccountService) {}
+  constructor(
+    private accountService: AccountService,
+    private router: Router,
+    private authenticationService: AuthenticationService
+  ) {}
 
   ngOnInit() {}
 
@@ -103,6 +109,8 @@ export class LoginPanelComponent implements OnInit {
       mail: this.mailCtrl.value,
       password: this.passwordCtrl.value,
     };
-    this.accountService.login(user);
+    // this.accountService.login(user);
+    // this.authenticationService.setLoginState = true;
+    this.router.navigate(['']);
   }
 }

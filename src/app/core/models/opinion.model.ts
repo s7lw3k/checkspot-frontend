@@ -1,10 +1,8 @@
 import { User } from './user.model';
 
 export interface Opinion {
-  id: number;
-  issuedBy?: User;
-  issuedDate: Date;
-  photos: string[];
+  photos?: string[];
+  shortContent?: string;
   content?: string;
   internetRating: number;
   neighborhoodRating: number;
@@ -13,7 +11,7 @@ export interface Opinion {
   price?: Price;
 }
 
-enum Price {
+export enum Price {
   '$',
   '$$',
   '$$$',
