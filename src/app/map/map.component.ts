@@ -28,7 +28,7 @@ import { CommonModule } from '@angular/common';
 import { LeafletMarkerClusterModule } from '@asymmetrik/ngx-leaflet-markercluster';
 import { MatButtonModule } from '@angular/material/button';
 import { Observable, Subscription } from 'rxjs';
-import { Spot } from '../core/models/spot.model';
+import { SimpleSpot, Spot } from '../core/models/spot.model';
 import { Action, Store } from '@ngrx/store';
 import {
   AddSpot,
@@ -135,7 +135,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private showSpotsComponent: ComponentRef<ShowSpotsComponent>;
 
-  public detailSpot: Spot;
+  public detailSpot: Spot | undefined;
 
   private subscriptions: Subscription = new Subscription();
 
@@ -156,10 +156,17 @@ export class MapComponent implements OnInit, OnDestroy {
         .subscribe((spots: SpotState) => {
           this.clusterGroup?.clearLayers();
           for (const id of spots.ids) {
-            const newSpot = spots.entities[id];
-            if (!newSpot) {
-              return;
-            }
+            const spot = spots.entities[id];
+            if (spot === undefined) return;
+            const newSpot: SimpleSpot = {
+              id: spot.id,
+              opinion: spot.opinion.shortContent,
+              rating: this.getAverageRate(spot?.opinion),
+              coordinates: spot.coordinates,
+              issuedDate: spot.issuedDate,
+              address: spot.address,
+            };
+            if (newSpot === undefined) return;
             const marker = new Marker(newSpot.coordinates, {
               icon: this.getMarkerIcon(),
             });
@@ -177,7 +184,7 @@ export class MapComponent implements OnInit, OnDestroy {
             this.subscriptions.add(
               showSpotComponent.instance.selectedSpot.subscribe(
                 (spotToDisplay) => {
-                  this.detailSpot = spotToDisplay;
+                  this.detailSpot = spots.entities[spotToDisplay.id];
                   marker.closePopup();
                 }
               )
@@ -193,9 +200,9 @@ export class MapComponent implements OnInit, OnDestroy {
       zoomToBoundsOnClick: false,
       showCoverageOnHover: false,
     });
+    let finedSpots: SimpleSpot[] = [];
     this.clusterGroup.on('clusterclick', (cluster: any) => {
       this.map.closePopup();
-      let finedSpots: Spot[] = [];
       for (const marker of cluster.layer.getAllChildMarkers() as Marker[]) {
         this.spots$
           .subscribe((spots) => {
@@ -205,7 +212,14 @@ export class MapComponent implements OnInit, OnDestroy {
                 spot.coordinates.lng === marker.getLatLng().lng
             );
             if (finedSpot) {
-              finedSpots.push(finedSpot);
+              finedSpots.push({
+                id: finedSpot.id,
+                opinion: finedSpot.opinion.shortContent,
+                rating: this.getAverageRate(finedSpot.opinion),
+                coordinates: finedSpot.coordinates,
+                issuedDate: finedSpot.issuedDate,
+                address: finedSpot.address,
+              });
             }
           })
           .unsubscribe();
@@ -215,9 +229,8 @@ export class MapComponent implements OnInit, OnDestroy {
       this.showSpotsComponent =
         this.viewContainerRef.createComponent(ShowSpotsComponent);
       this.showSpotsComponent.instance.spots = finedSpots;
-      let popup: Popup;
       this.ngZone.run(() => {
-        popup = new Popup()
+        new Popup()
           .setLatLng(cluster.layer.getLatLng())
           .setContent(this.showSpotsComponent.location.nativeElement)
           .openOn(this.map);
@@ -225,8 +238,11 @@ export class MapComponent implements OnInit, OnDestroy {
       this.subscriptions.add(
         this.showSpotsComponent.instance.selectedSpot.subscribe(
           (spotToDisplay) => {
-            this.detailSpot = spotToDisplay;
-            popup.close();
+            this.spots$.subscribe((spots) => {
+              this.detailSpot = spots.find(
+                (spot) => spot.id === spotToDisplay.id
+              );
+            });
           }
         )
       );
@@ -358,5 +374,16 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private getRandom(to: number = 10): number {
     return Math.round(Math.random() * to);
+  }
+  private getAverageRate(opinion: Opinion | undefined): number {
+    return opinion
+      ? Math.floor(
+          (opinion.internetRating +
+            opinion.neighborRating +
+            opinion.neighborhoodRating +
+            opinion.communicationRating) /
+            4
+        )
+      : 0;
   }
 }

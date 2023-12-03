@@ -11,3 +11,11 @@ export interface Spot {
   issuedDate: Date;
   coordinates: LatLng;
 }
+export interface SimpleSpot {
+  id: number;
+  opinion: string;
+  rating: number;
+  coordinates: LatLng;
+  issuedDate: Date;
+  address: Address;
+}

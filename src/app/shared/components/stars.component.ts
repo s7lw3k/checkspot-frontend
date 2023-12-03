@@ -7,28 +7,26 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'cs-stars',
   template: `
     <div class="cs-stars">
+      @for (number of numbers; track $index) {
       <div
         class="cs-stars--star"
-        *ngFor="let number of numbers"
         [ngStyle]="{ cursor: editable ? 'pointer' : '' }"
       >
+        @if(number * 2 - selection < 1) {
+        <mat-icon [style]="{ 'font-size': size + 'px' }">star</mat-icon>
+        } @else if (number * 2 - selection === 1) {
         <mat-icon
-          *ngIf="number * 2 - selection < 1"
-          [style]="{ 'font-size': size + 'px' }"
-          >star</mat-icon
-        >
-        <mat-icon
-          *ngIf="number * 2 - selection === 1"
           (click)="selectStars(number)"
           [style]="{ 'font-size': size + 'px' }"
           >star_half</mat-icon
         >
+        } @else {
         <mat-icon
-          *ngIf="number * 2 - selection > 1"
           (click)="selectStars(number)"
           [style]="{ 'font-size': size + 'px' }"
           >star_outline</mat-icon
         >
+        }
         <div
           class="cs-stars--selectL"
           (click)="selectStars(number * 2 - 1)"
@@ -44,6 +42,7 @@ import { MatIconModule } from '@angular/material/icon';
           }"
         ></div>
       </div>
+      }
     </div>
   `,
   standalone: true,

@@ -16,7 +16,7 @@ export class AuthenticationService {
       password: 'a',
       createdDate: new Date(),
       darkMode: false,
-      isLogin: true,
+      isLogin: false,
     });
     this.user.subscribe((user) => {
       this.stableUser = user;

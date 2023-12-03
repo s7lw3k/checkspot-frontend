@@ -110,7 +110,7 @@ export class LoginPanelComponent implements OnInit {
       password: this.passwordCtrl.value,
     };
     // this.accountService.login(user);
-    // this.authenticationService.setLoginState = true;
+    this.authenticationService.stableUser.isLogin = true;
     this.router.navigate(['']);
   }
 }

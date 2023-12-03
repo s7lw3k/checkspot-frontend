@@ -19,6 +19,7 @@ import { NewSpotSectionComponent } from './map/new-spot/new-spot-section/new-spo
 import { ShowSpotsComponent } from './map/show-spot/show-spots/show-spots.component';
 import { ShowSpotDetailComponent } from './map/show-spot/show-spot-detail/show-spot-detail.component';
 import { ShowSpotComponent } from './map/show-spot/show-spot/show-spot.component';
+import { DatePipe } from '@angular/common';
 
 @NgModule({
   declarations: [AppComponent],
@@ -39,7 +40,7 @@ import { ShowSpotComponent } from './map/show-spot/show-spot/show-spot.component
     ShowSpotDetailComponent,
     ShowSpotComponent,
   ],
-  providers: [provideAnimations()],
+  providers: [provideAnimations(), DatePipe],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

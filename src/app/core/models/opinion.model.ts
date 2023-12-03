@@ -2,7 +2,7 @@ import { User } from './user.model';
 
 export interface Opinion {
   photos?: string[];
-  shortContent?: string;
+  shortContent: string;
   content?: string;
   internetRating: number;
   neighborhoodRating: number;

@@ -13,12 +13,10 @@ export class AppComponent {
     private router: Router,
     private authenticationService: AuthenticationService
   ) {
-    this.authenticationService.currentLoggedUser.subscribe((user) => {
-      if (user.isLogin) {
-        router.navigate(['']);
-      } else {
-        router.navigate(['login']);
-      }
-    });
+    if (this.authenticationService.stableUser.isLogin) {
+      router.navigate(['']);
+    } else {
+      router.navigate(['login']);
+    }
   }
 }

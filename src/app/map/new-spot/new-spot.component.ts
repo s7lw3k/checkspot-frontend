@@ -87,7 +87,7 @@ import { AuthenticationService } from 'src/app/core/services/authentication.serv
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Piętro</mat-label>
-            <input matInput formControlName="floor" />
+            <input matInput type="number" formControlName="floor" />
           </mat-form-field>
         </form>
       </div>
