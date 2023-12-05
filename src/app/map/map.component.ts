@@ -19,7 +19,6 @@ import {
   MarkerClusterGroup,
   Marker,
   Icon,
-  Point,
   Layer,
 } from 'leaflet';
 import { NewSpotComponent } from './new-spot/new-spot.component';
@@ -27,13 +26,12 @@ import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { CommonModule } from '@angular/common';
 import { LeafletMarkerClusterModule } from '@asymmetrik/ngx-leaflet-markercluster';
 import { MatButtonModule } from '@angular/material/button';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, map, take } from 'rxjs';
 import { Spot } from '../core/models/spot.model';
-import { Action, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import {
   AddSpot,
   AddSpots,
-  SpotActionTypes,
 } from '../core/store/spot/spot.action';
 import { AppState } from '../core/store/app.state';
 import { SpotState } from '../core/store/spot/spot.state';
@@ -42,7 +40,6 @@ import { ShowSpotsComponent } from './show-spot/show-spots/show-spots.component'
 import { ShowSpotDetailComponent } from './show-spot/show-spot-detail/show-spot-detail.component';
 import { AuthenticationService } from '../core/services/authentication.service';
 import { Router } from '@angular/router';
-import { Opinion } from '../core/models/opinion.model';
 import { ShowSpotComponent } from './show-spot/show-spot/show-spot.component';
 @Component({
   selector: 'cs-map',
@@ -119,119 +116,119 @@ export class MapComponent implements OnInit, OnDestroy {
     center: latLng(0, 0),
   };
 
-  private map: Map;
+  public map: Map;
 
-  private zoom: number = 0;
+  public zoom: number = 0;
 
-  private spots$: Observable<Spot[]>;
+  public spots$: Observable<Spot[]>;
 
-  private newSpotMarker: Marker;
+  public newSpotMarker: Marker;
 
   public newCords: LatLng;
 
   public isAddSpotComponentVisible: boolean = false;
 
-  private clusterGroup: MarkerClusterGroup;
+  public clusterGroup: MarkerClusterGroup;
 
-  private showSpotsComponent: ComponentRef<ShowSpotsComponent>;
+  public showSpotsComponent: ComponentRef<ShowSpotsComponent>;
 
   public detailSpot: Spot;
 
-  private subscriptions: Subscription = new Subscription();
+  public subscriptions: Subscription = new Subscription();
 
-  constructor(
-    private store: Store<AppState>,
-    private ngZone: NgZone,
-    private viewContainerRef: ViewContainerRef,
-    private router: Router,
-    public authenticationService: AuthenticationService
-  ) {
-    this.authenticationService.currentLoggedUser.subscribe((user) => {
-      if (user === undefined || !user.isLogin) router.navigate(['login']);
-    });
-    this.spots$ = this.store.select(selectAllSpots);
-    this.subscriptions.add(
-      this.store
-        .select((store) => store.spots)
-        .subscribe((spots: SpotState) => {
-          this.clusterGroup?.clearLayers();
-          for (const id of spots.ids) {
-            const newSpot = spots.entities[id];
-            if (!newSpot) {
-              return;
-            }
-            const marker = new Marker(newSpot.coordinates, {
-              icon: this.getMarkerIcon(),
-            });
-            let layer: Layer;
-            const showSpotComponent =
-              this.viewContainerRef.createComponent(ShowSpotComponent);
-            showSpotComponent.instance.spot = newSpot;
-            this.ngZone.run(() => {
-              layer = marker.bindPopup(
-                showSpotComponent.location.nativeElement
-              );
-              this.clusterGroup.addLayer(layer);
-              this.clusterGroup.addTo(this.map);
-            });
-            this.subscriptions.add(
-              showSpotComponent.instance.selectedSpot.subscribe(
-                (spotToDisplay) => {
-                  this.detailSpot = spotToDisplay;
-                  marker.closePopup();
-                }
-              )
-            );
+constructor(
+  public store: Store<AppState>,
+  public ngZone: NgZone,
+  public viewContainerRef: ViewContainerRef,
+  public router: Router,
+  public authenticationService: AuthenticationService
+) {
+  this.authenticationService.currentLoggedUser.subscribe((user) => {
+    if (user === undefined || !user.isLogin) {
+      this.router.navigate(['login']);
+    }
+  });
+
+  this.spots$ = this.store.select(selectAllSpots);
+  this.subscriptions.add(
+    this.store
+      .select((store) => store.spots)
+      .subscribe((spots: SpotState) => {
+        this.clusterGroup?.clearLayers();
+
+        for (const id of spots.ids) {
+          const newSpot = spots.entities[id];
+
+          if (!newSpot) {
+            return;
           }
-        })
-    );
-  }
 
-  ngOnInit() {
-    this.clusterGroup = new MarkerClusterGroup({
-      removeOutsideVisibleBounds: true,
-      zoomToBoundsOnClick: false,
-      showCoverageOnHover: false,
-    });
-    this.clusterGroup.on('clusterclick', (cluster: any) => {
-      this.map.closePopup();
-      let finedSpots: Spot[] = [];
-      for (const marker of cluster.layer.getAllChildMarkers() as Marker[]) {
-        this.spots$
-          .subscribe((spots) => {
-            const finedSpot = spots.find(
-              (spot: Spot) =>
-                spot.coordinates.lat === marker.getLatLng().lat &&
-                spot.coordinates.lng === marker.getLatLng().lng
-            );
-            if (finedSpot) {
-              finedSpots.push(finedSpot);
-            }
-          })
-          .unsubscribe();
-      }
+          const marker = new Marker(newSpot.coordinates, {
+            icon: this.getMarkerIcon(),
+          });
 
-      this.showSpotsComponent?.destroy();
-      this.showSpotsComponent =
-        this.viewContainerRef.createComponent(ShowSpotsComponent);
-      this.showSpotsComponent.instance.spots = finedSpots;
-      let popup: Popup;
-      this.ngZone.run(() => {
-        popup = new Popup()
-          .setLatLng(cluster.layer.getLatLng())
-          .setContent(this.showSpotsComponent.location.nativeElement)
-          .openOn(this.map);
-      });
-      this.subscriptions.add(
-        this.showSpotsComponent.instance.selectedSpot.subscribe(
-          (spotToDisplay) => {
-            this.detailSpot = spotToDisplay;
-            popup.close();
-          }
+          const showSpotComponent = this.viewContainerRef.createComponent(ShowSpotComponent);
+          showSpotComponent.instance.spot = newSpot;
+
+          this.ngZone.runOutsideAngular(() => {
+            const layer = marker.bindPopup(showSpotComponent.location.nativeElement);
+            this.clusterGroup.addLayer(layer);
+            this.clusterGroup.addTo(this.map);
+          });
+
+          this.subscriptions.add(
+            showSpotComponent.instance.selectedSpot.subscribe((spotToDisplay) => {
+              this.detailSpot = spotToDisplay;
+              marker.closePopup();
+            })
+          );
+        }
+      })
+  );
+}
+
+ngOnInit() {
+  this.clusterGroup = new MarkerClusterGroup({
+    removeOutsideVisibleBounds: true,
+    zoomToBoundsOnClick: false,
+    showCoverageOnHover: false,
+  });
+  this.clusterGroup.on('clusterclick', (cluster: any) => {
+    this.map.closePopup();
+    this.spots$
+      .pipe(
+        take(1),
+        map(spots =>
+          cluster.layer.getAllChildMarkers()
+            .map((marker: Marker) => spots.find(spot =>
+              spot.coordinates.lat === marker.getLatLng().lat &&
+              spot.coordinates.lng === marker.getLatLng().lng
+            ))
+            .filter((finedSpot: Spot) => finedSpot !== undefined)
         )
-      );
-    });
-  }
+      )
+      .subscribe(finedSpots => {
+        this.showSpotsComponent?.destroy();
+        this.showSpotsComponent = this.viewContainerRef.createComponent(ShowSpotsComponent);
+        this.showSpotsComponent.instance.spots = finedSpots;
+        let popup: Popup;
+        this.ngZone.run(() => {
+          popup = new Popup()
+            .setLatLng(cluster.layer.getLatLng())
+            .setContent(this.showSpotsComponent.location.nativeElement)
+            .openOn(this.map);
+        });
+        this.subscriptions.add(
+          this.showSpotsComponent.instance.selectedSpot.subscribe(
+            (spotToDisplay) => {
+              this.detailSpot = spotToDisplay;
+              // popup.close();
+            }
+          )
+        );
+      });
+  });
+}
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
@@ -242,9 +239,7 @@ export class MapComponent implements OnInit, OnDestroy {
   public onMapReady(map: Map) {
     this.map = map;
     this.zoom = map.getZoom();
-
     this.map.setView([50.05, 19.95], 13);
-
     this.map.setMaxBounds(this.bounds);
     this.map.on('click', this.createNewSpotPin);
   }
@@ -279,34 +274,31 @@ export class MapComponent implements OnInit, OnDestroy {
     });
   };
 
-  public genRandomSpots(): void {
-    const newSpots: Spot[] = [];
-    for (let i = 0; i < 300; i++) {
-      newSpots.push({
-        id: Math.floor(Math.random() * 10000),
-        issuedDate: new Date(),
-        issuedBy: this.authenticationService.stableUser,
-        opinion: {
-          shortContent: 'Jest to losowo wygenerowana opinia',
-          content:
-            'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-          internetRating: this.getRandom(),
-          neighborhoodRating: this.getRandom(),
-          neighborRating: this.getRandom(),
-          communicationRating: this.getRandom(),
-        },
-        address: {
-          streetName: 'string',
-          houseNumber: `${this.getRandom(100)}`,
-        },
-        coordinates: {
-          lat: Math.random() * 0.05 + 50.05,
-          lng: Math.random() * 0.2 + 19.9,
-        } as LatLng,
-      });
-    }
-    this.store.dispatch(new AddSpots({ spots: newSpots }));
-  }
+public genRandomSpots(): void {
+  const newSpots: Spot[] = Array.from({ length: 300 }, () => ({
+    id: Math.floor(Math.random() * 10000),
+    issuedDate: new Date(),
+    issuedBy: this.authenticationService.stableUser,
+    opinion: {
+      shortContent: 'Jest to losowo wygenerowana opinia',
+      content:
+        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+      internetRating: this.getRandom(),
+      neighborhoodRating: this.getRandom(),
+      neighborRating: this.getRandom(),
+      communicationRating: this.getRandom(),
+    },
+    address: {
+      streetName: 'string',
+      houseNumber: `${this.getRandom(100)}`,
+    },
+    coordinates: {
+      lat: Math.random() * 0.05 + 50.05,
+      lng: Math.random() * 0.2 + 19.9,
+    } as LatLng,
+  }));
+  this.store.dispatch(new AddSpots({ spots: newSpots }));
+}
 
   public addSpot(): void {
     const newSpot: Spot = {

@@ -31,7 +31,7 @@ import { StarComponent } from 'src/app/shared/components/stars.component';
   imports: [CommonModule, StarComponent],
 })
 export class ShowSpotsComponent implements OnInit, OnDestroy {
-  spots: Spot[] = [];
+  public spots: Spot[] = [];
   @Output() selectedSpot = new EventEmitter<Spot>();
   constructor() {}
 
