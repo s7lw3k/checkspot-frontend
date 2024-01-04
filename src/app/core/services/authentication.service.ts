@@ -16,7 +16,7 @@ export class AuthenticationService {
       password: 'a',
       createdDate: new Date(),
       darkMode: false,
-      isLogin: false,
+      isLogin: true,
     });
     this.user.subscribe((user) => {
       this.stableUser = user;
@@ -25,7 +25,7 @@ export class AuthenticationService {
 
   get currentLoggedUser(): Observable<User> {
     return this.user;
-    // return this.http.get<User>(`${environment.apiUrl}`);
+    return this.http.get<User>(`${environment.apiUrl}`);
   }
   set setLoginState(state: boolean) {
     this.user.asObservable().subscribe((user) => (user.isLogin = state));

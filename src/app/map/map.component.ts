@@ -60,6 +60,7 @@ import { ShowSpotComponent } from './show-spot/show-spot/show-spot.component';
       </div>
     </div>
     <button
+      class="see-on-hover"
       style="z-index: 10000; position: absolute; margin: 20px 20px;"
       mat-raised-button
       (click)="genRandomSpots()"
@@ -67,6 +68,7 @@ import { ShowSpotComponent } from './show-spot/show-spot/show-spot.component';
       GenLos
     </button>
     <button
+      class="see-on-hover"
       style="z-index: 10000; position: absolute; margin: 20px 110px;"
       mat-raised-button
       (click)="addSpot()"
@@ -74,6 +76,7 @@ import { ShowSpotComponent } from './show-spot/show-spot/show-spot.component';
       addSpot
     </button>
     <button
+      class="see-on-hover"
       style="z-index: 10000; position: absolute; margin: 20px 200px;"
       mat-raised-button
       (click)="authenticationService.setLoginState = false"
@@ -202,6 +205,7 @@ export class MapComponent implements OnInit, OnDestroy {
     });
     let finedSpots: SimpleSpot[] = [];
     this.clusterGroup.on('clusterclick', (cluster: any) => {
+      finedSpots = [];
       this.map.closePopup();
       for (const marker of cluster.layer.getAllChildMarkers() as Marker[]) {
         this.spots$
