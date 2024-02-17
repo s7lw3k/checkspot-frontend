@@ -19,7 +19,6 @@ import {
   MarkerClusterGroup,
   Marker,
   Icon,
-  Point,
   Layer,
 } from 'leaflet';
 import { NewSpotComponent } from './new-spot/new-spot.component';
@@ -30,11 +29,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Observable, Subscription } from 'rxjs';
 import { SimpleSpot, Spot } from '../core/models/spot.model';
 import { Action, Store } from '@ngrx/store';
-import {
-  AddSpot,
-  AddSpots,
-  SpotActionTypes,
-} from '../core/store/spot/spot.action';
+import { AddSpot, AddSpots } from '../core/store/spot/spot.action';
 import { AppState } from '../core/store/app.state';
 import { SpotState } from '../core/store/spot/spot.state';
 import { selectAllSpots } from '../core/store/spot/spot.selectors';
@@ -42,8 +37,8 @@ import { ShowSpotsComponent } from './show-spot/show-spots/show-spots.component'
 import { ShowSpotDetailComponent } from './show-spot/show-spot-detail/show-spot-detail.component';
 import { AuthenticationService } from '../core/services/authentication.service';
 import { Router } from '@angular/router';
-import { Opinion } from '../core/models/opinion.model';
 import { ShowSpotComponent } from './show-spot/show-spot/show-spot.component';
+import { Opinion } from '../core/models/opinion.model';
 @Component({
   selector: 'cs-map',
   // templateUrl: './map.component.html',
@@ -114,25 +109,25 @@ export class MapComponent implements OnInit, OnDestroy {
     center: latLng(0, 0),
   };
 
-  private map: Map;
+  public map: Map;
 
-  private zoom: number = 0;
+  public zoom: number = 0;
 
-  private spots$: Observable<Spot[]>;
+  public spots$: Observable<Spot[]>;
 
-  private newSpotMarker: Marker;
+  public newSpotMarker: Marker;
 
   public newCords: LatLng;
 
   public isAddSpotComponentVisible: boolean = false;
 
-  private clusterGroup: MarkerClusterGroup;
+  public clusterGroup: MarkerClusterGroup;
 
-  private showSpotsComponent: ComponentRef<ShowSpotsComponent>;
+  public showSpotsComponent: ComponentRef<ShowSpotsComponent>;
 
   public detailSpot: Spot | undefined;
 
-  private subscriptions: Subscription = new Subscription();
+  public subscriptions: Subscription = new Subscription();
 
   constructor(
     private store: Store<AppState>,
@@ -257,9 +252,7 @@ export class MapComponent implements OnInit, OnDestroy {
   public onMapReady(map: Map) {
     this.map = map;
     this.zoom = map.getZoom();
-
     this.map.setView([50.05, 19.95], 13);
-
     this.map.setMaxBounds(this.bounds);
     this.map.on('click', this.createNewSpotPin);
   }
