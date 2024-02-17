@@ -19,4 +19,5 @@ export class AppComponent {
       router.navigate(['login']);
     }
   }
+  // Inne metody komponentu
 }

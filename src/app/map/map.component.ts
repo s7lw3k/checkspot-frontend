@@ -75,14 +75,6 @@ import { ShowSpotComponent } from './show-spot/show-spot/show-spot.component';
     >
       addSpot
     </button>
-    <button
-      class="see-on-hover"
-      style="z-index: 10000; position: absolute; margin: 20px 200px;"
-      mat-raised-button
-      (click)="authenticationService.setLoginState = false"
-    >
-      logOut
-    </button>
     <new-spot
       [newCords]="newCords"
       (submitNewSpot)="handleNewSpotSubmit()"
@@ -251,6 +243,9 @@ export class MapComponent implements OnInit, OnDestroy {
         )
       );
     });
+    setTimeout(() => {
+      this.genRandomSpots();
+    }, 100);
   }
 
   ngOnDestroy() {
@@ -320,11 +315,130 @@ export class MapComponent implements OnInit, OnDestroy {
           houseNumber: `${this.getRandom(100)}`,
         },
         coordinates: {
-          lat: Math.random() * 0.05 + 50.05,
-          lng: Math.random() * 0.2 + 19.9,
+          lat: Math.random() * 0.08 + 50.01,
+          lng: Math.random() * 0.4 + 19.7,
         } as LatLng,
       });
     }
+    newSpots.push({
+      id: Math.floor(Math.random() * 10000),
+      issuedDate: new Date(),
+      issuedBy: this.authenticationService.stableUser,
+      opinion: {
+        shortContent: 'Super mieszkanie dla studenta',
+        content:
+          'Mieszkanie znajduje się blisko centrum (ok. 30min spacerkiem). Na parterze znajduje sie dobrze wyposażona biedronka co jet ogromnym plusem tego miejsca. Oprócz tego są 3 żabki w najbliższej okolicy. Sąsiedzi są spokojni a ściany są grube więc nie słuchać niechcianych dźwięków praktycznie nigdy. Nieopodal jest szpital więc często słychać karetkę nie przeszkadza ona jednak bardzo. Cała okolica jest wypełniona sklepami oraz innymi specjalistami Na 6 piętrze piekny widok na centrum Krakowa.',
+        internetRating: 10,
+        neighborhoodRating: 6,
+        neighborRating: 10,
+        communicationRating: 9,
+      },
+      address: {
+        streetName: 'Władysława Łokietka',
+        houseNumber: `5`,
+        apartmentNumber: 6,
+        floor: 6,
+      },
+      coordinates: {
+        lat: 50.076800451870064,
+        lng: 19.930679798126224,
+      } as LatLng,
+    });
+    newSpots.push({
+      id: Math.floor(Math.random() * 10000),
+      issuedDate: new Date(),
+      issuedBy: this.authenticationService.stableUser,
+      opinion: {
+        shortContent: 'Mieszkanie na krowodrzy',
+        content:
+          'Mieszkanie na Krowodrzy w Krakowie to strzał w dziesiątkę! Lokalizacja jest idealna – blisko centrum, a jednocześnie spokojna okolica. Infrastruktura świetnie rozwinięta, mnóstwo sklepów i restauracji. Mieszkanie nowoczesne, zadbane i przestronne. Wspaniałe miejsce do życia!',
+        internetRating: 6,
+        neighborhoodRating: 7,
+        neighborRating: 10,
+        communicationRating: 8,
+      },
+      address: {
+        streetName: 'Wrocławska',
+        houseNumber: `11`,
+        apartmentNumber: 16,
+        floor: 3,
+      },
+      coordinates: {
+        lat: 50.07575042600877,
+        lng: 19.930626153945926,
+      } as LatLng,
+    });
+    //NEW1
+    newSpots.push({
+      id: Math.floor(Math.random() * 10000),
+      issuedDate: new Date(),
+      issuedBy: this.authenticationService.stableUser,
+      opinion: {
+        shortContent: 'Mieszkanie z duszą',
+        content:
+          'Mieszkanie to pełne harmonii i funkcjonalności. Przemyślany układ pomieszczeń i nowoczesne wykończenie sprawiają, że codzienne życie staje się wyjątkowo komfortowe.',
+        internetRating: 2,
+        neighborhoodRating: 8,
+        neighborRating: 8,
+        communicationRating: 9,
+      },
+      address: {
+        streetName: 'Józefa Fiedleina',
+        houseNumber: `3`,
+      },
+      coordinates: {
+        lat: 50.07589846383411,
+        lng: 19.931377172470096,
+      } as LatLng,
+    });
+    //NEW2
+    newSpots.push({
+      id: Math.floor(Math.random() * 10000),
+      issuedDate: new Date(),
+      issuedBy: this.authenticationService.stableUser,
+      opinion: {
+        shortContent: 'Nie mogłam mieć psa',
+        content:
+          'Lokalizacja jest kluczowa – bliskość sklepów, komunikacji i terenów rekreacyjnych czynią to miejsce idealnym dla aktywnych osób.',
+        internetRating: 7,
+        neighborhoodRating: 3,
+        neighborRating: 8,
+        communicationRating: 6,
+      },
+      address: {
+        streetName: 'Władysława Łokietka',
+        houseNumber: `6a`,
+      },
+      coordinates: {
+        lat: 50.076246178789084,
+        lng: 19.930433034896854,
+      } as LatLng,
+    });
+    //NEW3
+    newSpots.push({
+      id: Math.floor(Math.random() * 10000),
+      issuedDate: new Date(),
+      issuedBy: this.authenticationService.stableUser,
+      opinion: {
+        shortContent: 'Jest okay ale..',
+        content:
+          'Mieszkanie zachwyca estetyką i dbałością o detal. Jasne wnętrza i wysokiej jakości materiały tworzą atmosferę, która z łatwością staje się domem.',
+        internetRating: 3,
+        neighborhoodRating: 6,
+        neighborRating: 7,
+        communicationRating: 4,
+      },
+      address: {
+        streetName: 'Wrocławska',
+        houseNumber: `16`,
+        apartmentNumber: 4,
+        floor: 1,
+      },
+      coordinates: {
+        lat: 50.07539926468804,
+        lng: 19.930990934371952,
+      } as LatLng,
+    });
     this.store.dispatch(new AddSpots({ spots: newSpots }));
   }
 

@@ -32,10 +32,10 @@ import { StarComponent } from 'src/app/shared/components/stars.component';
   imports: [CommonModule, StarComponent],
 })
 export class ShowSpotsComponent implements OnInit, OnDestroy {
+  // Implementacja Klasy
   spots: SimpleSpot[] = [];
   @Output() selectedSpot = new EventEmitter<SimpleSpot>();
   constructor() {}
-
   ngOnInit() {}
   ngOnDestroy(): void {}
 
